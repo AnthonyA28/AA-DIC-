@@ -14,8 +14,8 @@ perform_suite(
 	grid_size_px,
 	save_every=3, # Save every 2nd image parsed
 	strain_type="engineering", # Engineering strain will be calculate 
-	choose_area_of_interest=False, # Choose the area of interest 
-	calc_positions=False, # Calculate Positions 
-	calc_strains=False, # Calulate strains 
+	choose_area_of_interest=True, # Choose the area of interest 
+	calc_positions=True, # Calculate Positions 
+	calc_strains=True, # Calulate strains 
 	freqs = [1] # skip images until images are 1 second apart 
 	)
