@@ -12,7 +12,7 @@ perform_suite(
 	ref_image,
 	window_size_px,
 	grid_size_px,
-	save_every=3, # Save every 2nd image parsed
+	save_every=2, # Save every 2nd image parsed
 	strain_type="engineering", # Engineering strain will be calculate 
 	choose_area_of_interest=True, # Choose the area of interest 
 	calc_positions=True, # Calculate Positions 
