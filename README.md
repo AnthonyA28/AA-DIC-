@@ -9,6 +9,8 @@ Steps:
 3. Choose an area of interest.
 4. The software will determine the displacement of speckles and then the strain.
 
-
-
 ![Tutorial](Tutorial.png)
+
+
+Much of the code here was adapted from https://gitlab.com/damien.andre/pydic. Pydic is recommended in most circumstances. AA-DIC- was designed to run more efficiently when very many (>10k) images are being analyzed.  
+
