@@ -18,7 +18,7 @@ import argparse
 from glob import glob
 import math 
 
-image_path_name = r"/pos_images"
+image_path_name = r"pos_images"
 save_file_type="jpg"
 
 
@@ -26,7 +26,7 @@ save_file_type="jpg"
 
 # Parses when the images are in the format ( image_[Y]-[M]-[D]_[h]-[m]-[s]-[z]-N[c].png )
 def parse_time_from_file(file_name):
-	file_name = file_name.rsplit(r"/",1)[1]
+	file_name = os.path.basename(file_name)
 	date = file_name.split(".",1)[0]
 	date = date+"000"
 	split = date.split("_")
@@ -116,7 +116,7 @@ def get_positions(areas_of_interest,\
 	# Get the list of points within the area_of_interest 
 	points_list, points_x, points_y = get_grid(images[0], grid_size_px, area_of_interest=area_of_interest)
 
-	out_img_dir = log_path+image_path_name
+	out_img_dir = os.path.join(log_path,image_path_name)
 	if not os.path.exists(out_img_dir):
 		os.makedirs(out_img_dir)
 
@@ -225,7 +225,7 @@ def get_positions(areas_of_interest,\
 		save_every_i  += 1
 		if save_every > 0 and save_every_i >= save_every:
 			save_every_i = 0 
-			save_name = out_img_dir + r"/"+images[i].split(r"/")[-1].split(".")[0]+"."+save_file_type
+			save_name = os.path.join(out_img_dir,str((os.path.basename(images[i]).split(".")[0]) + "." +save_file_type))
 			print(".. Saving image to " , save_name  , end="\n")
 			p_size = int(grid_size_px[0]/2)
 			DIC_base.draw_opencv(images[i], point=current_points_list, pointf=points_list, p_color=(255,0,0), filename=save_name, p_size=p_size)

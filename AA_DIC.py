@@ -53,9 +53,9 @@ def perform_suite(image_path, \
 	):
 
 	if log_path == "":
-		log_path = image_path[:-1] + log_path_prefix+ "_log-ws"+str(window_size_px[0]) + "-gs" + str(grid_size_px[0]) + "/"
+		log_path = image_path + log_path_prefix+ "_log-ws"+str(window_size_px[0]) + "-gs" + str(grid_size_px[0])
 	if pickle_path == "":
-		pickle_path = log_path + "/"+"pickles/"
+		pickle_path = os.path.joins(log_path, "pickles")
 	os.makedirs(pickle_path, exist_ok = True)
 	os.makedirs(log_path, exist_ok = True)
 
@@ -116,7 +116,7 @@ def perform_suite(image_path, \
 		strain_xy_mat_l = pickle.load(open(pickle_path + "strain_xy_mat_l", "rb"))
 
 
-	draw_strains(strain_xx_mat_l,pts_x_l, pts_y_l, log_path+"/Strain_xx", images, save_every=save_every, gausFilt=0.5)
+	draw_strains(strain_xx_mat_l,pts_x_l, pts_y_l, os.path.joins(log_path,"/Strain_xx"), images, save_every=save_every, gausFilt=0.5)
 
 	return times, strain_xx_mat_l, strain_yy_mat_l, strain_xy_mat_l, images
 

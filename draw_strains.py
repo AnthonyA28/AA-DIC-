@@ -137,7 +137,7 @@ def draw_strains(strain_mat_l, pt_mat_x_list, pt_mat_y_list,log_path, file_names
 		thickness = 2
 		pos = (40, 80)
 		
-		save_name = log_path + r"/" + img_name.split(r"/")[-1].split(".")[0] + ".jpg"
+		save_name = os.path.join(log_path,str(os.path.basename(img_name).split(".")[0]+".jpg"))
 		cv2.imwrite( save_name, image)
 		print("saving " + str(save_name))
 		
