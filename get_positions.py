@@ -225,7 +225,7 @@ def get_positions(areas_of_interest,\
 			save_name = os.path.join(out_img_dir,str((os.path.basename(images[i]).split(".")[0]) + "." +save_file_type))
 			print(".. Saving image to " , save_name  , end="\n")
 			p_size = int(grid_size_px[0]/2)
-			DIC_base.draw_opencv(images[i], point=current_points_list, pointf=orig_points_list, p_color=(255,0,0), filename=save_name, p_size=p_size)
+			DIC_base.draw_opencv(images[i], point=current_points_list, pointf=orig_points_list, p_color=(255,0,0), filename=save_name, square_width=int(grid_size_px[0]), p_size=1)
 		else:
 			print()
 		i += 1

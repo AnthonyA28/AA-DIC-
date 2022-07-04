@@ -12,7 +12,7 @@ perform_suite(
 	ref_image,
 	window_size_px,
 	grid_size_px,
-	iterative_correlation=False,
+	iterative_correlation=True,
 	save_every=2, # Save every 2nd image parsed
 	strain_type="engineering", # Engineering strain will be calculate 
 	choose_aoi=True, # Choose the area of interest 
