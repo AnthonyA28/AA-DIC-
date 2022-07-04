@@ -13,7 +13,6 @@ import os
 import matplotlib.colors as colors
 
 
-from get_area_of_interest import get_area_of_interest
 from get_positions import get_img_list
 from get_positions import get_positions
 from get_strains import get_strains 
@@ -60,7 +59,7 @@ def perform_suite(image_path, \
 	log_path="", \
 	ranges=[],\
 	freqs=[0.001], \
-	choose_area_of_interest=CHOOSE_AREA_OF_INTEREST,\
+	choose_aoi=CHOOSE_AREA_OF_INTEREST,\
 	calc_positions=CALC_POSITIONS,\
 	calc_strains=CALC_STRAINS
 	):
@@ -72,22 +71,33 @@ def perform_suite(image_path, \
 	os.makedirs(pickle_path, exist_ok = True)
 	os.makedirs(log_path, exist_ok = True)
 
-	if CHOOSE_AREA_OF_INTEREST and not CALC_POSITIONS:
-		print("ERROR: CALC_POSITIONS==False and CHOOSE_AREA_OF_INTEREST==True ")
-		areas = get_area_of_interest(log_path, ref_image)
+	if choose_aoi:
+		areas = []
+		r = ()
+		frame = cv2.imread(ref_image)
+		while r != (0,0,0,0):
+			r = cv2.selectROI(frame,  True, False)
+			area =[[r[0], r[1]], [r[0] + r[2], r[1] + r[3]]]
+			areas.append(area)
+			points_list,points_x,points_y  = get_grid(ref_image, grid_size_px, area_of_interest=area)
+			frame = draw_opencv(frame, point=[(r[0], r[1])],p_color=(0,255,0), square_width=window_size_px[0], p_size=2)
+			frame = draw_opencv(frame, point=points_list,p_color=(0,0,255), p_size=1)
+
+		inp = input('Input \'y\' or \'yes\' to confirm area of interest')
+		if not( "y" in inp or "yes" in inp):
+			return 
+
+
 		pickle.dump(areas, open(pickle_path + "areas", "wb"))
-		return 
+	else:
+		print("Using previous area of interest")
+		areas = pickle.load(open(pickle_path + "areas", "rb"))
 
 	images, times = get_img_list(image_path, freqs, ranges, start_index, stop_index,time_between_images=0)
 	pickle.dump(images, open(pickle_path + "images", "wb"))
 	pickle.dump(times, open(pickle_path + "times", "wb"))
 
 	if(calc_positions):
-		if(choose_area_of_interest):
-			areas = get_area_of_interest(log_path, ref_image)
-			pickle.dump(areas, open(pickle_path + "areas", "wb"))
-		else:
-			areas = pickle.load(open(pickle_path + "areas", "rb"))
 		pts_l, num_pt_x, num_pt_y   = get_positions(areas, log_path, images, times, grid_size_px, window_size_px,iterative_correlation=iterative_correlation, save_every=save_every)
 
 		pickle.dump(grid_size_px,open(pickle_path + "grid_size_px", "wb"))
@@ -175,21 +185,46 @@ def draw_opencv(image, *args, **kwargs):
 		p_color = (0, 255, 255) if not 'p_color' in kwargs else kwargs['p_color']
 		for pt in kwargs['point']:
 			if not np.isnan(pt[0]) and not np.isnan(pt[1]):
-				 x = int(pt[0])
-				 y = int(pt[1])
-				 # p_color = (255,0,0)
-				 frame = cv2.circle(frame, (x, y), p_size, p_color, -1)
+				x = int(pt[0])
+				y = int(pt[1])
+				# p_color = (255,0,0)
+				if 'square_width' in kwargs:
+					start_point = (int(x-kwargs['square_width']/2), int(y-kwargs['square_width']/2))
+					end_point = (int(x+kwargs['square_width']/2), int(y+kwargs['square_width']/2))
+					frame = cv2.rectangle(frame, start_point, end_point, p_color, p_size)
+				else:
+					frame = cv2.circle(frame, (x, y), p_size, p_color, -1)
 
 	if 'filename' in kwargs:
 		 cv2.imwrite( kwargs['filename'], frame)
 		 return
 
-	cv2.namedWindow('image', cv2.WINDOW_NORMAL)
-	cv2.resizeWindow('image', frame.shape[1], frame.shape[0])
-	cv2.moveWindow('image', 40,30)  # Move it to (40,30)
-	cv2.imshow('image',frame)
-	cv2.waitKey(0)
-	cv2.destroyAllWindows()
+	if 'show' in kwargs:
+		cv2.namedWindow('image', cv2.WINDOW_NORMAL)
+		cv2.resizeWindow('image', frame.shape[1], frame.shape[0])
+		cv2.moveWindow('image', 40,30)  # Move it to (40,30)
+		cv2.imshow('image',frame)
+		cv2.waitKey(0)
+		cv2.destroyAllWindows()
+		return 
+	return frame 
+
+def get_grid(img_path, grid_size_px, **kwargs):
+
+	imgFile = cv2.imread(img_path, 0)
+	area_of_interest = kwargs['area_of_interest']
+	points_x = np.float64(np.arange(area_of_interest[0][0], area_of_interest[1][0], grid_size_px[0]))
+	points_y = np.float64(np.arange(area_of_interest[0][1], area_of_interest[1][1], grid_size_px[1]))
+	points_list   = []
+
+	for x in points_x:
+		for y in points_y:
+			points_list.append(np.array([np.float32(x),np.float32(y)]))
+
+	points_list = np.array(points_list)
+
+	return points_list, points_x, points_y
+
 
 if __name__ == "__main__":
 	print("This is not meant to be run as main.")

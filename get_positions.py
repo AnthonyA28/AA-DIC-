@@ -41,21 +41,7 @@ def parse_time_from_file(file_name):
 	date = datetime.strptime(date_str_with_microseconds, '%Y-%m-%d--%H-%M-%S-%f')
 	return date
 
-def get_grid(img_path, grid_size_px, **kwargs):
 
-	imgFile = cv2.imread(img_path, 0)
-	area_of_interest = kwargs['area_of_interest']
-	points_x = np.float64(np.arange(area_of_interest[0][0], area_of_interest[1][0], grid_size_px[0]))
-	points_y = np.float64(np.arange(area_of_interest[0][1], area_of_interest[1][1], grid_size_px[1]))
-	points_list   = []
-
-	for x in points_x:
-		for y in points_y:
-			points_list.append(np.array([np.float32(x),np.float32(y)]))
-
-	points_list = np.array(points_list)
-
-	return points_list, points_x, points_y
 
 def find_nearest(array,value):
 	idx = np.searchsorted(array, value, side="left")
@@ -196,7 +182,7 @@ def get_positions(areas_of_interest,\
 	area_of_interest = areas_of_interest[0]
 
 	# Get the list of points within the area_of_interest 
-	points_list, points_x, points_y = get_grid(images[0], grid_size_px, area_of_interest=area_of_interest)
+	points_list, points_x, points_y = DIC_base.get_grid(images[0], grid_size_px, area_of_interest=area_of_interest)
 
 	out_img_dir = os.path.join(log_path,image_path_name)
 	if not os.path.exists(out_img_dir):
