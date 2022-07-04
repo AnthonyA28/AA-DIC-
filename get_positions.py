@@ -64,18 +64,113 @@ def find_nearest(array,value):
 	else:
 		return idx
 
+
+
+def get_img_list(image_path, freqs, ranges, start_index, stop_index, time_between_images=0):
+
+	print("image_path ", image_path)
+
+	times = []
+	images = []
+	images = [y for x in os.walk(image_path) for y in glob(os.path.join(x[0], '*.tif')) + glob(os.path.join(x[0], '*.tiff')) + glob(os.path.join(x[0], '*.png')) + glob(os.path.join(x[0], '*.jpg'))]
+
+	# Sort the images by the first number in the filename
+	images.sort(key=lambda f: int(re.sub('\D', '', f)))
+	images = images[start_index:stop_index]
+
+	t = 0 
+	init_time = t
+	if time_between_images == 0:
+		init_time = parse_time_from_file(images[0])
+		print("init_time: ", init_time)
+	else:
+		init_time = t
+		t += time_between_images/1000000
+
+	total_len_images = len(images)
+	print("total_len_images: ", total_len_images)
+
+	#get a list of images and times 
+	i = 0
+	images_to_parse = []
+	while i < total_len_images: #and i >= start_index and i < stop_index:
+		images_to_parse.append(images[i])
+		if time_between_images == 0:
+			cur_time = parse_time_from_file(images[i])
+		else:
+			cur_time = t 
+			t += time_between_images/1000000
+		try:
+			delta_time = (cur_time-init_time).total_seconds()
+		except Exception as err:
+			delta_time = (cur_time-init_time)
+		times.append(delta_time)
+		i += 1
+	images = images_to_parse
+
+	# These were parse in the wrong format (the names of folders should be alphabetical )
+	for i in range(0, len(images)):
+		if (times[i] < 0 ):
+			print("exitting due to negative time ")
+			import sys
+			sys.exit()
+
+	assert len(ranges)+1 == len(freqs)
+
+	freq = freqs[0]
+	_range = times[-1]
+	if len(ranges) > 0 :
+		_range = ranges[0]
+
+	print("Creating list of images to correlate: ")
+	
+	times_to_parse = []
+	images_to_parse = []
+	t = 0 
+	i = -1
+	prev_index = -1
+	count = 0 
+	while True:
+		index = find_nearest(times,t)
+		if index != prev_index:
+			prev_index = index
+			times_to_parse.append(times[index])
+			images_to_parse.append(images[index])
+			count += 1 
+			print( "(",str(count),"/",str(total_len_images),") r=", int(_range), ", f=",int(freq),"Adding file: " , "/".join(images[index].split("/")[-2:]), end=" | ")
+			print("time : {:.2f}".format(times[index]), " of {:.2f}".format(times[-1]),  " , {:.2f}".format(t/times[-1]*100), " %") 
+		t += freq
+		if t > _range:
+			i += 1
+			print(i, end="")
+			if i == len(ranges)-1:
+				freq = freqs[i+1]
+				_range = times[-1]
+				# print(" i == len(ranges)-1      freq = ", freq, " range = ", _range)
+				if freq == -1:
+					break
+			elif i < len(ranges):
+				freq = freqs[i+1]
+				_range = ranges[i+1]
+				# print(" i < len(ranges)      freq = ", freq, " range = ", _range)
+			else:
+				break
+	times = times_to_parse
+	images = images_to_parse
+
+	return images, times
+
+
+
 def get_positions(areas_of_interest,\
-					image_path,\
 					log_path,\
+					images, \
+					times, \
 					grid_size_px,\
 					window_size_px ,\
 					iterative_correlation=False,\
-					save_every=0,\
-					time_between_images=0,\
-					start_index=0,\
-					stop_index=100000000,\
-					ranges=[],\
-					freqs=[0.001]):
+					save_every=0 \
+					):
 	'''
 		areas_of_interest: The area of interest in pixel coordinates 
 		image_path: The path to the images to perform DIC on 
@@ -100,18 +195,6 @@ def get_positions(areas_of_interest,\
 
 	area_of_interest = areas_of_interest[0]
 
-	print("image_path ", image_path)
-
-	times = []
-	images = []
-	images = [y for x in os.walk(image_path) for y in glob(os.path.join(x[0], '*.tif')) + glob(os.path.join(x[0], '*.tiff')) + glob(os.path.join(x[0], '*.png')) + glob(os.path.join(x[0], '*.jpg'))]
-
-	# Sort the images by the first number in the filename
-	images.sort(key=lambda f: int(re.sub('\D', '', f)))
-	images = images[start_index:stop_index]
-
-	print("Reference Image: ", str(images[0]))
-
 	# Get the list of points within the area_of_interest 
 	points_list, points_x, points_y = get_grid(images[0], grid_size_px, area_of_interest=area_of_interest)
 
@@ -119,85 +202,14 @@ def get_positions(areas_of_interest,\
 	if not os.path.exists(out_img_dir):
 		os.makedirs(out_img_dir)
 
-	t = 0 
-	init_time = t
-	if time_between_images == 0:
-		init_time = parse_time_from_file(images[0])
-	else:
-		init_time = t
-		t += time_between_images/1000000
+	print(len(times))
+	print(len(images))
 
 	img_mat_prev = cv2.imread(images[0], 1)
 	img_mat_orig = img_mat_prev
 	current_points_list = points_list
 	orig_points_list = np.array(points_list)
-
-	total_len_images = len(images)
 	mat_l = []
-	print("total_len_images: ", total_len_images)
-
-	#get a list of images and times 
-	i = 0
-	images_to_parse = []
-	while i < total_len_images: #and i >= start_index and i < stop_index:
-		images_to_parse.append(images[i])
-		if time_between_images == 0:
-			cur_time = parse_time_from_file(images[i])
-		else:
-			cur_time = t 
-			t += time_between_images/1000000
-		try:
-			delta_time = (cur_time-init_time).total_seconds()
-		except Exception as err:
-			delta_time = (cur_time-init_time)
-		times.append(delta_time)
-		i += 1
-	images = images_to_parse
-
-	print(len(images))
-
-	assert len(ranges)+1 == len(freqs)
-
-	freq = freqs[0]
-	_range = times[-1]
-	if len(ranges) > 0 :
-		_range = ranges[0]
-
-	print("Creating list of images to correlate: ")
-	
-	times_to_parse = []
-	images_to_parse = []
-	t = 0 
-	i = -1
-	prev_index = -1
-	count = 0 
-	while True:
-		index = find_nearest(times,t)
-		if index != prev_index:
-			prev_index = index
-			times_to_parse.append(times[index])
-			images_to_parse.append(images[index])
-			count += 1 
-			print( "(",str(count),"/",str(total_len_images),") Adding file: " , "/".join(images[index].split("/")[-2:]), end=" | ")
-			print("time : {:.2f}".format(times[index]), " of {:.2f}".format(times[-1]),  " , {:.2f}".format(t/times[-1]*100), " %") 
-		t += freq
-		if t > _range:
-			i += 1
-			print(i)
-			if i == len(ranges)-1:
-				freq = freqs[i+1]
-				_range = times[-1]
-			elif i < len(ranges):
-				freq = freqs[i+1]
-				_range = ranges[i]
-			else:
-				break
-	times = times_to_parse
-	images = images_to_parse
-
-
-	print(len(times))
-	print(len(images))
 
 	i = 0
 	save_every_i = 0
@@ -234,7 +246,7 @@ def get_positions(areas_of_interest,\
 
 	num_pt_x = len(points_x)
 	num_pt_y = len(points_y)
-	return mat_l, times, images, num_pt_x, num_pt_y
+	return mat_l, num_pt_x, num_pt_y
 
 
 
