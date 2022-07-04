@@ -69,6 +69,7 @@ def get_positions(areas_of_interest,\
 					log_path,\
 					grid_size_px,\
 					window_size_px ,\
+					iterative_correlation=False,\
 					save_every=0,\
 					time_between_images=0,\
 					start_index=0,\
@@ -90,10 +91,8 @@ def get_positions(areas_of_interest,\
 	'''
 
 
-	use_ref_pos = False  #TODO: #p3 If there is an efficient way to integrate a reference (to account for backgorund moevement that would be nice. )
 	ref_points_list = []
 	if len(areas_of_interest)==2:
-		use_ref_pos = True 
 		ref_area = areas_of_interest[1]
 		x = int((ref_area[0][0] + ref_area[1][0])/2.0)
 		y = int((ref_area[0][1] + ref_area[1][1])/2.0)
@@ -129,7 +128,10 @@ def get_positions(areas_of_interest,\
 		t += time_between_images/1000000
 
 	img_mat_prev = cv2.imread(images[0], 1)
+	img_mat_orig = img_mat_prev
 	current_points_list = points_list
+	orig_points_list = np.array(points_list)
+
 	total_len_images = len(images)
 	mat_l = []
 	print("total_len_images: ", total_len_images)
@@ -208,14 +210,11 @@ def get_positions(areas_of_interest,\
 		lk_params = dict( winSize  = window_size_px, maxLevel = 50,
 						criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 500, 0.0003))
 		
-		if (use_ref_pos):
-			ref_points_list, st, err = cv2.calcOpticalFlowPyrLK(img_mat_prev, img_mat_cur, ref_points_list, None, **lk_params)
-			print(ref_points_list)
-			import time  
-			time.sleep(10)
-
-		
-		current_points_list, st, err = cv2.calcOpticalFlowPyrLK(img_mat_prev, img_mat_cur, current_points_list, None, **lk_params)
+		if not iterative_correlation :
+			ref_points_list = np.array(ref_points_list)
+			current_points_list, st, err = cv2.calcOpticalFlowPyrLK(img_mat_orig, img_mat_cur, orig_points_list, current_points_list,  **lk_params)
+		else:
+			current_points_list, st, err = cv2.calcOpticalFlowPyrLK(img_mat_prev, img_mat_cur, current_points_list, None, **lk_params)
 		img_mat_prev = img_mat_cur
 		st = np.array(st) 
 		err = np.array(err) 
@@ -228,7 +227,7 @@ def get_positions(areas_of_interest,\
 			save_name = os.path.join(out_img_dir,str((os.path.basename(images[i]).split(".")[0]) + "." +save_file_type))
 			print(".. Saving image to " , save_name  , end="\n")
 			p_size = int(grid_size_px[0]/2)
-			DIC_base.draw_opencv(images[i], point=current_points_list, pointf=points_list, p_color=(255,0,0), filename=save_name, p_size=p_size)
+			DIC_base.draw_opencv(images[i], point=current_points_list, pointf=orig_points_list, p_color=(255,0,0), filename=save_name, p_size=p_size)
 		else:
 			print()
 		i += 1

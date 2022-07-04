@@ -53,6 +53,7 @@ def perform_suite(image_path, \
     choose_area_of_interest=CHOOSE_AREA_OF_INTEREST,\
     calc_positions=CALC_POSITIONS,\
     calc_strains=CALC_STRAINS,\
+    iterative_correlation=False,
     first_imgs=1,\
     last_imgs=1,\
     save_every=1,\
@@ -89,7 +90,7 @@ def perform_suite(image_path, \
             areas = pickle.load(open(pickle_path + "areas", "rb"))
         global times
         global images 
-        pts_l, times, images, num_pt_x, num_pt_y    = get_positions(areas, image_path, log_path, grid_size_px, window_size_px, save_every=save_every,  start_index=start_index, stop_index=stop_index, ranges=ranges, freqs=freqs)
+        pts_l, times, images, num_pt_x, num_pt_y    = get_positions(areas, image_path, log_path, grid_size_px, window_size_px, iterative_correlation=iterative_correlation, save_every=save_every,  start_index=start_index, stop_index=stop_index, ranges=ranges, freqs=freqs)
         pickle.dump(grid_size_px,open(pickle_path + "grid_size_px", "wb"))
         pickle.dump(window_size_px,open(pickle_path + "window_size_px", "wb"))
         pickle.dump(pts_l,open(pickle_path + "pts_l", "wb"))
