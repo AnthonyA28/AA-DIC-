@@ -72,25 +72,33 @@ def perform_suite(image_path, \
 	os.makedirs(log_path, exist_ok = True)
 
 	if choose_aoi:
-		areas = []
 		r = ()
 		ref_image_read = cv2.imread(ref_image)
-		while True:
+		i = 0
+		while i < 10:
+			areas = []
 			print("resetting")
-			frame = ref_image_read.copy() 
+			frame = cv2.imread(ref_image)
+			wn_name = "Select the area of interest " + str(i)
 			while r != (0,0,0,0):
-				r = cv2.selectROI(frame,  True, False)
+				frame = draw_opencv(frame, text="Choose the AOI then double tap space bar to continue")
+				r = cv2.selectROI(wn_name, frame,  True, False)
 				area =[[r[0], r[1]], [r[0] + r[2], r[1] + r[3]]]
 				areas.append(area)
 				points_list,points_x,points_y  = get_grid(ref_image, grid_size_px, area_of_interest=area)
 				frame = draw_opencv(frame, point=points_list,p_color=(0,255,0), square_width=window_size_px[0], p_size=1)
 				frame = draw_opencv(frame, point=points_list,p_color=(0,0,255), p_size=1)
 
-			inp = input('Input \'y\' or \'yes\' to confirm area of interest')
+			print("\n\n")
+			print("Input \'r\' to re-choose the area of interest")
+			print('Input \'y\' or \'yes\' to confirm area of interest')
+			inp = input("Input anything else to quit")
 			if "y" in inp or "yes" in inp:
+				cv2.destroyWindow(wn_name)
 				break
-			# if "r" in inp:
-			# 	continue
+			if "r" in inp:
+				cv2.destroyWindow(wn_name)
+				r=()
 			else:
 				return
 
@@ -174,9 +182,7 @@ def draw_opencv(image, *args, **kwargs):
 	if 'text' in kwargs:
 		 text = kwargs['text']
 		 image = cv2.putText(image, text, (50,50), cv2.FONT_HERSHEY_SIMPLEX, 1,(255,255,255),4)
-
-		 
-	# frame = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
+	
 	frame = image
 
 	scale = 1. if not 'scale' in kwargs else kwargs['scale']
