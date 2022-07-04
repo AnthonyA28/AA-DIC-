@@ -74,18 +74,25 @@ def perform_suite(image_path, \
 	if choose_aoi:
 		areas = []
 		r = ()
-		frame = cv2.imread(ref_image)
-		while r != (0,0,0,0):
-			r = cv2.selectROI(frame,  True, False)
-			area =[[r[0], r[1]], [r[0] + r[2], r[1] + r[3]]]
-			areas.append(area)
-			points_list,points_x,points_y  = get_grid(ref_image, grid_size_px, area_of_interest=area)
-			frame = draw_opencv(frame, point=[(r[0], r[1])],p_color=(0,255,0), square_width=window_size_px[0], p_size=2)
-			frame = draw_opencv(frame, point=points_list,p_color=(0,0,255), p_size=1)
+		ref_image_read = cv2.imread(ref_image)
+		while True:
+			print("resetting")
+			frame = ref_image_read.copy() 
+			while r != (0,0,0,0):
+				r = cv2.selectROI(frame,  True, False)
+				area =[[r[0], r[1]], [r[0] + r[2], r[1] + r[3]]]
+				areas.append(area)
+				points_list,points_x,points_y  = get_grid(ref_image, grid_size_px, area_of_interest=area)
+				frame = draw_opencv(frame, point=points_list,p_color=(0,255,0), square_width=window_size_px[0], p_size=1)
+				frame = draw_opencv(frame, point=points_list,p_color=(0,0,255), p_size=1)
 
-		inp = input('Input \'y\' or \'yes\' to confirm area of interest')
-		if not( "y" in inp or "yes" in inp):
-			return 
+			inp = input('Input \'y\' or \'yes\' to confirm area of interest')
+			if "y" in inp or "yes" in inp:
+				break
+			# if "r" in inp:
+			# 	continue
+			else:
+				return
 
 
 		pickle.dump(areas, open(pickle_path + "areas", "wb"))
@@ -155,7 +162,9 @@ def draw_opencv(image, *args, **kwargs):
  - 'grid' to display a grid, the grid must be a grid object
  - 'gr_color' to choose the grid color
  - 'p_size' to choose pixel size of the poiints  """
+
 	p_size = 8
+	l_size=1
 	if 'p_size' in kwargs: 
 	  p_size = kwargs['p_size']
 	if type(image) == str :
@@ -179,7 +188,7 @@ def draw_opencv(image, *args, **kwargs):
 			if np.isnan(pt0[0])==False and np.isnan(pt0[1])==False and np.isnan(pt1[0])==False and np.isnan(pt1[1])==False :
 				 disp_x = (pt1[0]-pt0[0])*scale
 				 disp_y = (pt1[1]-pt0[1])*scale
-				 frame = cv2.line(frame, (int(pt0[0]), int(pt0[1])), (int(pt0[0]+disp_x), int(pt0[1]+disp_y)), l_color, p_size)
+				 frame = cv2.line(frame, (int(pt0[0]), int(pt0[1])), (int(pt0[0]+disp_x), int(pt0[1]+disp_y)), l_color, l_size)
 	
 	if  'point' in kwargs:
 		p_color = (0, 255, 255) if not 'p_color' in kwargs else kwargs['p_color']
