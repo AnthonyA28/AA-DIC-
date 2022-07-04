@@ -182,7 +182,7 @@ def get_positions(areas_of_interest,\
 	area_of_interest = areas_of_interest[0]
 
 	# Get the list of points within the area_of_interest 
-	points_list, points_x, points_y = DIC_base.get_grid(images[0], grid_size_px, area_of_interest=area_of_interest)
+	points_list, points_x, points_y = DIC_base.get_grid(cv2.imread(images[0]), grid_size_px, area_of_interest=area_of_interest)
 
 	out_img_dir = os.path.join(log_path,image_path_name)
 	if not os.path.exists(out_img_dir):
@@ -233,10 +233,6 @@ def get_positions(areas_of_interest,\
 	num_pt_x = len(points_x)
 	num_pt_y = len(points_y)
 	return mat_l, num_pt_x, num_pt_y
-
-
-
-
 
 
 

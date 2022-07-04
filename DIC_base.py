@@ -72,36 +72,7 @@ def perform_suite(image_path, \
 	os.makedirs(log_path, exist_ok = True)
 
 	if choose_aoi:
-		r = ()
-		ref_image_read = cv2.imread(ref_image)
-		i = 0
-		while i < 10:
-			areas = []
-			print("resetting")
-			frame = cv2.imread(ref_image)
-			wn_name = "Select the area of interest " + str(i)
-			while r != (0,0,0,0):
-				frame = draw_opencv(frame, text="Choose the AOI then double tap space bar to continue")
-				r = cv2.selectROI(wn_name, frame,  True, False)
-				area =[[r[0], r[1]], [r[0] + r[2], r[1] + r[3]]]
-				areas.append(area)
-				points_list,points_x,points_y  = get_grid(ref_image, grid_size_px, area_of_interest=area)
-				frame = draw_opencv(frame, point=points_list,p_color=(0,255,0), square_width=window_size_px[0], p_size=1)
-				frame = draw_opencv(frame, point=points_list,p_color=(0,0,255), p_size=1)
-
-			print("\n\n")
-			print("Input \'r\' to re-choose the area of interest")
-			print('Input \'y\' or \'yes\' to confirm area of interest')
-			inp = input("Input anything else to quit")
-			if "y" in inp or "yes" in inp:
-				cv2.destroyWindow(wn_name)
-				break
-			if "r" in inp:
-				cv2.destroyWindow(wn_name)
-				r=()
-			else:
-				return
-
+		areas = get_area_of_interest(ref_image, grid_size_px, window_size_px)
 
 		pickle.dump(areas, open(pickle_path + "areas", "wb"))
 	else:
@@ -159,6 +130,51 @@ def perform_suite(image_path, \
 
 	return times, strain_xx_mat_l, strain_yy_mat_l, strain_xy_mat_l, images
 
+
+def get_area_of_interest(ref_image, grid_size_px, window_size_px):
+
+	def handle_input(PreliminaryImage, grid_size_px, window_size_px):
+		image = PreliminaryImage
+		global areas
+		areas = []
+		area = [(), ()]
+
+		def click_and_crop(event, x, y, flags, area):
+			if event == cv2.EVENT_LBUTTONDOWN:
+				print("Cursor: " , str(x)+", ",  str(y))
+				area[0] = (x, y)
+			elif event == cv2.EVENT_LBUTTONUP:
+				area[1] = (x, y)
+				points_list,points_x,points_y  = get_grid(image, grid_size_px, area_of_interest=area)
+				Newimage = draw_opencv(image, point=points_list,p_color=(0,255,0), square_width=window_size_px[0], p_size=1)
+				Newimage = draw_opencv(Newimage, point=points_list,p_color=(0,0,255), p_size=1)
+				x1 = int((area[0][0] + area[1][0])/2.0)
+				y1 = int((area[0][1] + area[1][1])/2.0)
+				cv2.circle(Newimage, (x1, y1), 1, (255,0,0), -1)
+				cv2.putText(Newimage, str(len(areas) + 1), area[0], cv2.FONT_HERSHEY_SIMPLEX, 0.5,(0,0,255))
+				cv2.imshow('image', Newimage)
+				areas.append(copy.copy(area))
+		clone = image.copy()
+		cv2.namedWindow('image', cv2.WINDOW_NORMAL)
+		cv2.resizeWindow('image', image.shape[1], image.shape[0])
+		cv2.setMouseCallback("image", click_and_crop, area)
+		# keep looping until the 'c' key is pressed
+		while True:
+			# display the image and wait for a keypress
+			cv2.imshow("image", image)
+			key = cv2.waitKey(1) & 0xFF
+			# if the 'r' key is pressed, reset the cropping region
+			if key == ord("r"):
+				image = clone.copy()
+				areas = []
+				# if the 'c' key is pressed, break from the loop
+			elif key == ord("c"):
+				cv2.destroyWindow('image')
+				break
+		return areas
+	image_mat = cv2.imread(ref_image)
+	areas = handle_input(image_mat, grid_size_px, window_size_px)
+	return areas
 
 def draw_opencv(image, *args, **kwargs):
 	"""A function with a lot of named argument to draw opencv image
@@ -224,9 +240,9 @@ def draw_opencv(image, *args, **kwargs):
 		return 
 	return frame 
 
-def get_grid(img_path, grid_size_px, **kwargs):
+def get_grid(img_File, grid_size_px, **kwargs):
 
-	imgFile = cv2.imread(img_path, 0)
+	# imgFile = cv2.imread(img_path, 0)
 	area_of_interest = kwargs['area_of_interest']
 	points_x = np.float64(np.arange(area_of_interest[0][0], area_of_interest[1][0], grid_size_px[0]))
 	points_y = np.float64(np.arange(area_of_interest[0][1], area_of_interest[1][1], grid_size_px[1]))
