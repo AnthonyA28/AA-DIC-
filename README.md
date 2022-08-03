@@ -20,6 +20,26 @@ This software will measure strains on a sequence of images using the openCV imag
 
 
 
+# Installation
+
+1. Download the source code from this github repository. 
+
+2. Use the environment.yml file with Conda to install the dependencies:
+
+   ```bash
+   conda env create -f environment.yml
+   ```
+
+3. Activate the environment so the libraries area available when you run python:
+
+   ```bash
+   conda activate AA_DIC_env
+   ```
+
+   
+
+
+
 # Examples
 
 ## Hourglass Specimen
@@ -52,17 +72,11 @@ To run the post processing
 python Example_2.2_PolyCOE_Postprocess.py
 ```
 
-
-
  
-
-
 
 # Branch for PolyCOE Sample
 
 This branch of the repository exists to recreate the DIC results in the published report. Specifically the tensile test of the sample having soft (COR) and hard (TOR) segments in series. Two files are specific to this branch: *DIC_PolyCOE.py* and Plot_PolyCOE_Results.py. *DIC_PolyCOE.py* will perform the DIC algorithm, with the predefined parameters - grid size, window size and area of interest, etc. After installing the necessary prerequisite libraries 
-
-
 
 
 
