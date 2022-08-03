@@ -68,17 +68,11 @@ python Example_2.1_PolyCOE_DIC.py
 
 To run the post processing 
 
-```python
+```bash
 python Example_2.2_PolyCOE_Postprocess.py
 ```
 
  
-
-# Branch for PolyCOE Sample
-
-This branch of the repository exists to recreate the DIC results in the published report. Specifically the tensile test of the sample having soft (COR) and hard (TOR) segments in series. Two files are specific to this branch: *DIC_PolyCOE.py* and Plot_PolyCOE_Results.py. *DIC_PolyCOE.py* will perform the DIC algorithm, with the predefined parameters - grid size, window size and area of interest, etc. After installing the necessary prerequisite libraries 
-
-
 
 ## Credits 
 
