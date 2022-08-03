@@ -61,7 +61,9 @@ def perform_suite(image_path, \
 	freqs=[0.001], \
 	choose_aoi=CHOOSE_AREA_OF_INTEREST,\
 	calc_positions=CALC_POSITIONS,\
-	calc_strains=CALC_STRAINS
+	calc_strains=CALC_STRAINS,\
+	draw_strain_global_min=None, \
+	draw_strain_global_max=None
 	):
 
 	if log_path == "":
@@ -70,6 +72,7 @@ def perform_suite(image_path, \
 		pickle_path = log_path + "/"+"pickles/"
 	os.makedirs(pickle_path, exist_ok = True)
 	os.makedirs(log_path, exist_ok = True)
+
 
 	if choose_aoi==True:
 		areas = get_area_of_interest(ref_image, grid_size_px, window_size_px)
@@ -129,7 +132,7 @@ def perform_suite(image_path, \
 		strain_xy_mat_l = pickle.load(open(pickle_path + "strain_xy_mat_l", "rb"))
 
 
-	draw_strains(strain_xx_mat_l,pts_x_l, pts_y_l, log_path+"/Strain_xx", images, save_every=save_every, gausFilt=0.5)
+	draw_strains(strain_xx_mat_l,pts_x_l, pts_y_l, log_path+"/Strain_xx", images, save_every=save_every, gausFilt=0.5, global_max=draw_strain_global_max, global_min=draw_strain_global_min)
 
 	return times, strain_xx_mat_l, strain_yy_mat_l, strain_xy_mat_l, images
 

@@ -14,6 +14,8 @@ perform_suite(
 	grid_size_px,
 	iterative_correlation=True,
 	save_every=1, # Save every image parsed
-	strain_type="engineering", # Engineering strain will be calculate 
-	choose_aoi= [[(1143, 628), (1937, 738)]], # Choose the area of interest 
+	strain_type="engineering", # Engineering strain will be calculate
+	choose_aoi= [[(1143, 628), (1937, 738)]], # Choose the area of interest
+	draw_strain_global_min=0, # lower limit for the strain legend
+	draw_strain_global_max=5 # upper limit for the strain legend
 	)
