@@ -71,14 +71,17 @@ def perform_suite(image_path, \
 	os.makedirs(pickle_path, exist_ok = True)
 	os.makedirs(log_path, exist_ok = True)
 
-	if choose_aoi:
+	if choose_aoi==True:
 		areas = get_area_of_interest(ref_image, grid_size_px, window_size_px)
 
 		pickle.dump(areas, open(pickle_path + "areas", "wb"))
-	else:
+	elif choose_aoi == False:
 		print("Using previous area of interest")
 		areas = pickle.load(open(pickle_path + "areas", "rb"))
-
+	else:
+		areas = choose_aoi
+		pickle.dump(areas, open(pickle_path + "areas", "wb"))
+		
 	images, times = get_img_list(image_path, freqs, ranges, start_index, stop_index,time_between_images=0)
 	pickle.dump(images, open(pickle_path + "images", "wb"))
 	pickle.dump(times, open(pickle_path + "times", "wb"))
